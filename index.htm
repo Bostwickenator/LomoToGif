@@ -5,20 +5,25 @@
             
 
              var image = new Image();
-            image.src = "./tests/unspecified.jpg";
+            image.src = "./tests/ssnp135int_sample_7_media_gallery.jpg";
 
             // or a canvas element
            // gif.addFrame(canvasElement, {delay: 200});
 
             // or copy the pixels from a canvas context
            // 
-
-           
+var cameras = [{name:'octomat', xFrames:4, yFrames:2, baseRate: 312},{name:'super sampler', xFrames:4, yFrames:1, baseRate:100},]
+           var camera = 1;
         function runJob() {
             
-           
+           var xFrames = cameras[camera].xFrames;
+           var yFrames = cameras[camera].yFrames;
+           var delay = cameras[camera].baseRate;
             var canvas = document.getElementById("scratchCanvas");
-
+var xStep = image.width/xFrames;
+var yStep = image.height/yFrames;
+canvas.width = xStep
+canvas.height = yStep;
             var gif = new GIF({
                 workers: 2,
                 quality: 10,
@@ -32,8 +37,15 @@
             output.src = url;
         });
             var ctx = canvas.getContext("2d", {alpha: false});
-            ctx.drawImage(image, 0, 0);
-            gif.addFrame(ctx, {copy: true});
+            for(var y =0 ; y < yFrames;y++){
+            for(var x =0 ; x < xFrames;x++){
+                var xPos = x * xStep;
+                var yPos = y * yStep;
+                ctx.drawImage(image, xPos,yPos,xStep,yStep,0,0,xStep,yStep);
+                gif.addFrame(ctx, {delay: delay, copy: true});
+            }
+            }
+           
              ctx.drawImage(image, 10, 10);
             gif.addFrame(ctx, {copy: true});
             gif.render()
@@ -41,7 +53,7 @@
         </script>
     </head>
     <body>
-        <canvas id="scratchCanvas" width="300" height="200"></canvas>
+        <canvas id="scratchCanvas" style="display:none;" width="300" height="200"></canvas>
         
         <img id="output" />
         <button onclick="runJob()">Run</button>
