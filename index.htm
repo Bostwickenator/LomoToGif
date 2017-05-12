@@ -1,61 +1,89 @@
 <html>
-    <head>
-        <script src="./gif.js"></script>
-        <script>
-            
 
-             var image = new Image();
-            image.src = "./tests/ssnp135int_sample_7_media_gallery.jpg";
+<head>
+    <script src="./gif.js"></script>
+    <script>
+        var image = new Image();
+      
 
-            // or a canvas element
-           // gif.addFrame(canvasElement, {delay: 200});
+        // or a canvas element
+        // gif.addFrame(canvasElement, {delay: 200});
 
-            // or copy the pixels from a canvas context
-           // 
-var cameras = [{name:'octomat', xFrames:4, yFrames:2, baseRate: 312},{name:'super sampler', xFrames:4, yFrames:1, baseRate:100},]
-           var camera = 1;
+        // or copy the pixels from a canvas context
+        // 
+        var cameras = [{ name: 'octomat', xFrames: 4, yFrames: 2, baseRate: 312 }, { name: 'super sampler', xFrames: 4, yFrames: 1, baseRate: 100 },]
+        var camera = 1;
+
+        function loadFile() {
+            // .onchange = function (evt) 
+            files = document.getElementById('picField').files;
+
+            // FileReader support
+            if (FileReader && files && files.length) {
+                var fr = new FileReader();
+                image.onload = function() {
+                    runJob();
+                }
+                fr.onload = function () {
+                    image.src = fr.result;
+
+                }
+                fr.readAsDataURL(files[0]);
+            }
+
+            // Not supported
+            else {
+                // fallback -- perhaps submit the input to an iframe and temporarily store
+                // them on the server until the user's session ends.
+
+            }
+        }
+
         function runJob() {
-            
-           var xFrames = cameras[camera].xFrames;
-           var yFrames = cameras[camera].yFrames;
-           var delay = cameras[camera].baseRate;
+
+            var xFrames = cameras[camera].xFrames;
+            var yFrames = cameras[camera].yFrames;
+            var delay = cameras[camera].baseRate;
             var canvas = document.getElementById("scratchCanvas");
-var xStep = image.width/xFrames;
-var yStep = image.height/yFrames;
-canvas.width = xStep
-canvas.height = yStep;
+            var xStep = image.width / xFrames;
+            var yStep = image.height / yFrames;
+            canvas.width = xStep
+            canvas.height = yStep;
             var gif = new GIF({
                 workers: 2,
                 quality: 10,
                 width: canvas.width,
                 height: canvas.height
             });
-             gif.on('finished', function(blob) {
+            gif.on('finished', function (blob) {
                 console.log("complete");
                 var url = URL.createObjectURL(blob)
-                   var output = document.getElementById("output");
-            output.src = url;
-        });
-            var ctx = canvas.getContext("2d", {alpha: false});
-            for(var y =0 ; y < yFrames;y++){
-            for(var x =0 ; x < xFrames;x++){
-                var xPos = x * xStep;
-                var yPos = y * yStep;
-                ctx.drawImage(image, xPos,yPos,xStep,yStep,0,0,xStep,yStep);
-                gif.addFrame(ctx, {delay: delay, copy: true});
+                var output = document.getElementById("output");
+                output.src = url;
+            });
+            var ctx = canvas.getContext("2d", { alpha: false });
+            for (var y = 0; y < yFrames; y++) {
+                for (var x = 0; x < xFrames; x++) {
+                    var xPos = x * xStep;
+                    var yPos = y * yStep;
+                    ctx.drawImage(image, xPos, yPos, xStep, yStep, 0, 0, xStep, yStep);
+                    gif.addFrame(ctx, { delay: delay, copy: true });
+                }
             }
-            }
-           
-             ctx.drawImage(image, 10, 10);
-            gif.addFrame(ctx, {copy: true});
+
+            ctx.drawImage(image, 10, 10);
+            gif.addFrame(ctx, { copy: true });
             gif.render()
         }
-        </script>
-    </head>
-    <body>
-        <canvas id="scratchCanvas" style="display:none;" width="300" height="200"></canvas>
-        
-        <img id="output" />
-        <button onclick="runJob()">Run</button>
-    </body>
+    </script>
+</head>
+
+<body>
+    <canvas id="scratchCanvas" style="display:none;" width="300" height="200"></canvas>
+
+    <img id="output" />
+    <input type="file" name="picField" id="picField" />
+    <button onclick="loadFile()">Run</button>
+</body>
+
 </html>
