@@ -2,17 +2,31 @@
 
 <head>
     <script src="./gif.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Passion+One" rel="stylesheet" type="text/css">
+    <meta charset="utf-8">
+	<link rel="icon" href="graphics/fav.png" sizes="128x128" type="image/png">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-99254604-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
     <script>
         var image = new Image();
-      
+
 
         // or a canvas element
         // gif.addFrame(canvasElement, {delay: 200});
 
         // or copy the pixels from a canvas context
         // 
-        var cameras = [{ name: 'octomat', xFrames: 4, yFrames: 2, baseRate: 312 }, { name: 'super sampler', xFrames: 4, yFrames: 1, baseRate: 100 },]
-        var camera = 1;
+        var cameras = [{ name: 'octomat', xFrames: 4, yFrames: 2, baseRate: 312 }, { name: 'super sampler', xFrames: 4, yFrames: 1, baseRate: 200 }, { name: 'action sampler', xFrames: 2, yFrames: 2, baseRate: 312 }]
+        var cameraIndex = 0;
 
         function loadFile() {
             // .onchange = function (evt) 
@@ -21,7 +35,7 @@
             // FileReader support
             if (FileReader && files && files.length) {
                 var fr = new FileReader();
-                image.onload = function() {
+                image.onload = function () {
                     runJob();
                 }
                 fr.onload = function () {
@@ -41,9 +55,9 @@
 
         function runJob() {
 
-            var xFrames = cameras[camera].xFrames;
-            var yFrames = cameras[camera].yFrames;
-            var delay = cameras[camera].baseRate;
+            var xFrames = cameras[cameraIndex].xFrames;
+            var yFrames = cameras[cameraIndex].yFrames;
+            var delay = cameras[cameraIndex].baseRate;
             var canvas = document.getElementById("scratchCanvas");
             var xStep = image.width / xFrames;
             var yStep = image.height / yFrames;
@@ -70,20 +84,73 @@
                     gif.addFrame(ctx, { delay: delay, copy: true });
                 }
             }
-
-            ctx.drawImage(image, 10, 10);
-            gif.addFrame(ctx, { copy: true });
             gif.render()
         }
+        function setCameraIndex(index) {
+            cameraIndex = index;
+            var octomat = document.getElementById("octomat");
+            var supersampler = document.getElementById("supersampler");
+            var actionsampler = document.getElementById("actionsampler");
+            switch (index) {
+                case 0:
+                    octomat.className = "camera-selected";
+                    supersampler.className = "camera";
+                    actionsampler.className = "camera";
+                    break;
+                case 1:
+                    octomat.className = "camera";
+                    supersampler.className = "camera-selected";
+                    actionsampler.className = "camera";
+                    break;
+                case 2:
+                    octomat.className = "camera";
+                    supersampler.className = "camera";
+                    actionsampler.className = "camera-selected";
+                    break;
+            }
+
+        }
     </script>
+    <link rel="stylesheet" type="text/css" href="./main.css">
 </head>
 
 <body>
+    <div class="main">
+    <div class="stage">
+        <h1>LOMO TO GIF</h1>
+        <p>This tool turns your multi frame shots into gifs. It is in no way offical.</p>
+    </div>
     <canvas id="scratchCanvas" style="display:none;" width="300" height="200"></canvas>
-
-    <img id="output" />
-    <input type="file" name="picField" id="picField" />
-    <button onclick="loadFile()">Run</button>
+    <div class="stage">
+        <h2>Select your camera</h2>
+        <div class="camera-selected" onclick="setCameraIndex(0);" id="octomat">
+            <img class="cameraIcon" src="./graphics/octomat.png" />
+            <h3 class="cameraName">Octomat</h3>
+        </div>
+        <div class="camera" onclick="setCameraIndex(2);" id="actionsampler">
+            <img class="cameraIcon" src="./graphics/actionsampler.png" />
+            <h3 class="cameraName">Action Sampler</h3>
+        </div>
+        <div class="camera" onclick="setCameraIndex(1);" id="supersampler">
+            <img class="cameraIcon" src="./graphics/supersampler.png" />
+            <h3 class="cameraName">Super Sampler</h3>
+        </div>
+    </div>
+    <div class="stage">
+        <h2>Select your image</h2>
+        <input type="file" name="picField" id="picField" />
+    </div>
+    <div class="stage">
+        <h2>Enter the darkroom</h2>
+        <button onclick="loadFile()">Develop</button>
+    </div>
+    <div class="stage">
+        <img id="output" class="output" style="max-width: 500px; padding-bottom: 20px;" />
+    </div>
+    <a href="http://alexgee.xyz" class="linkout">
+        <h4 class="hvr-fade">alexgee.xyz <img class="circle-image" src="https://www.gravatar.com/avatar/66b5467449acc36e21e7aafb96373f84?s=200"></h4>
+    </a>
+    </div>
 </body>
 
 </html>
