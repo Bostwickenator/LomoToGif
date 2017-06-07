@@ -76,12 +76,23 @@
                 output.src = url;
             });
             var ctx = canvas.getContext("2d", { alpha: false });
-            for (var y = 0; y < yFrames; y++) {
+            if (cameraIndex == 2) {
+                for (var y = 0; y < yFrames; y++) {
+                    for (var x = 0; x < xFrames; x++) {
+                        var xPos = x * xStep;
+                        var yPos = y * yStep;
+                        ctx.drawImage(image, xPos, yPos, xStep, yStep, 0, 0, xStep, yStep);
+                        gif.addFrame(ctx, { delay: delay, copy: true });
+                    }
+                }
+            } else {
                 for (var x = 0; x < xFrames; x++) {
-                    var xPos = x * xStep;
-                    var yPos = y * yStep;
-                    ctx.drawImage(image, xPos, yPos, xStep, yStep, 0, 0, xStep, yStep);
-                    gif.addFrame(ctx, { delay: delay, copy: true });
+                    for (var y = 0; y < yFrames; y++) {
+                        var xPos = x * xStep;
+                        var yPos = y * yStep;
+                        ctx.drawImage(image, xPos, yPos, xStep, yStep, 0, 0, xStep, yStep);
+                        gif.addFrame(ctx, { delay: delay, copy: true });
+                    }
                 }
             }
             gif.render()
