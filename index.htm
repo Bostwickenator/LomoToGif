@@ -1,35 +1,32 @@
 <html>
-
 <head>
     <script src="./gif.js"></script>
     <link href="https://fonts.googleapis.com/css?family=Passion+One" rel="stylesheet" type="text/css">
     <meta charset="utf-8">
-	<link rel="icon" href="graphics/fav.png" sizes="128x128" type="image/png">
-<script>
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-
-  ga('create', 'UA-99254604-1', 'auto');
-  ga('send', 'pageview');
-
-</script>
-
+    <link rel="icon" href="graphics/fav.png" sizes="128x128" type="image/png">
     <script>
+        (function (i, s, o, g, r, a, m) {
+            i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
+                (i[r].q = i[r].q || []).push(arguments)
+            }, i[r].l = 1 * new Date(); a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
+        })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
+        ga('create', 'UA-99254604-1', 'auto');
+        ga('send', 'pageview');
+    </script>
+    <script>
+        var OCTOMAT = 0;
+        var SUPER_SAMPLER = 1;
+        var ACTION_SAMPLER = 2;
         var image = new Image();
-
-
-        // or a canvas element
-        // gif.addFrame(canvasElement, {delay: 200});
-
-        // or copy the pixels from a canvas context
-        // 
-        var cameras = [{ name: 'octomat', xFrames: 4, yFrames: 2, baseRate: 312 }, { name: 'super sampler', xFrames: 4, yFrames: 1, baseRate: 200 }, { name: 'action sampler', xFrames: 2, yFrames: 2, baseRate: 312 }]
+        var cameras = [
+            { name: 'octomat', xFrames: 4, yFrames: 2, baseRate: 312 },
+            { name: 'super sampler', xFrames: 4, yFrames: 1, baseRate: 200 },
+            { name: 'action sampler', xFrames: 2, yFrames: 2, baseRate: 312 }
+        ];
         var cameraIndex = 0;
 
         function loadFile() {
-            // .onchange = function (evt) 
             files = document.getElementById('picField').files;
 
             // FileReader support
@@ -43,26 +40,24 @@
 
                 }
                 fr.readAsDataURL(files[0]);
-            }
-
-            // Not supported
-            else {
-                // fallback -- perhaps submit the input to an iframe and temporarily store
-                // them on the server until the user's session ends.
-
+            } else {
+                // Not supported
             }
         }
 
         function runJob() {
-
+            document.getElementById("processing").style.display = "block";
+            document.getElementById("output").style.visibility = "hidden";
+            var speedMultipler = document.getElementById("speed").value;
             var xFrames = cameras[cameraIndex].xFrames;
             var yFrames = cameras[cameraIndex].yFrames;
-            var delay = cameras[cameraIndex].baseRate;
+            var delay = cameras[cameraIndex].baseRate / speedMultipler;
             var canvas = document.getElementById("scratchCanvas");
             var xStep = image.width / xFrames;
             var yStep = image.height / yFrames;
             canvas.width = xStep
             canvas.height = yStep;
+
             var gif = new GIF({
                 workers: 2,
                 quality: 10,
@@ -74,18 +69,47 @@
                 var url = URL.createObjectURL(blob)
                 var output = document.getElementById("output");
                 output.src = url;
+                document.getElementById("processing").style.display = "none";
+                document.getElementById("output").style.visibility = "visible";
             });
             var ctx = canvas.getContext("2d", { alpha: false });
-            for (var y = 0; y < yFrames; y++) {
+            if (cameraIndex == ACTION_SAMPLER) {
+                for (var y = 0; y < yFrames; y++) {
+                    for (var x = 0; x < xFrames; x++) {
+                        var xPos = x * xStep;
+                        var yPos = y * yStep;
+                        ctx.drawImage(image, xPos, yPos, xStep, yStep, 0, 0, xStep, yStep);
+                        gif.addFrame(ctx, { delay: delay, copy: true });
+                    }
+                }
+            } else if (cameraIndex == OCTOMAT) {
+                var y = 1;
                 for (var x = 0; x < xFrames; x++) {
                     var xPos = x * xStep;
                     var yPos = y * yStep;
                     ctx.drawImage(image, xPos, yPos, xStep, yStep, 0, 0, xStep, yStep);
                     gif.addFrame(ctx, { delay: delay, copy: true });
                 }
+                y = 0;
+                for (var x = xFrames-1; x >= 0; x--) {
+                    var xPos = x * xStep;
+                    var yPos = y * yStep;
+                    ctx.drawImage(image, xPos, yPos, xStep, yStep, 0, 0, xStep, yStep);
+                    gif.addFrame(ctx, { delay: delay, copy: true });
+                }
+            } else { // SUPER_SAMPLER
+                for (var x = 0; x < xFrames; x++) {
+                    for (var y = 0; y < yFrames; y++) {
+                        var xPos = x * xStep;
+                        var yPos = y * yStep;
+                        ctx.drawImage(image, xPos, yPos, xStep, yStep, 0, 0, xStep, yStep);
+                        gif.addFrame(ctx, { delay: delay, copy: true });
+                    }
+                }
             }
-            gif.render()
+            gif.render();
         }
+
         function setCameraIndex(index) {
             cameraIndex = index;
             var octomat = document.getElementById("octomat");
@@ -112,45 +136,49 @@
         }
     </script>
     <link rel="stylesheet" type="text/css" href="./main.css">
+    <meta name="viewport" content="width=device-width">
 </head>
-
 <body>
     <div class="main">
-    <div class="stage">
-        <h1>LOMO TO GIF</h1>
-        <p>This tool turns your multi frame shots into gifs. It is in no way offical.</p>
-    </div>
-    <canvas id="scratchCanvas" style="display:none;" width="300" height="200"></canvas>
-    <div class="stage">
-        <h2>Select your camera</h2>
-        <div class="camera-selected" onclick="setCameraIndex(0);" id="octomat">
-            <img class="cameraIcon" src="./graphics/octomat.png" />
-            <h3 class="cameraName">Octomat</h3>
+        <div class="stage">
+            <h1>LOMO TO GIF</h1>
+            <p>This tool turns your multi frame shots into gifs. It is in no way offical.</p>
         </div>
-        <div class="camera" onclick="setCameraIndex(2);" id="actionsampler">
-            <img class="cameraIcon" src="./graphics/actionsampler.png" />
-            <h3 class="cameraName">Action Sampler</h3>
+        <canvas id="scratchCanvas" style="display:none;" width="300" height="200"></canvas>
+        <div class="stage">
+            <h2>Select your camera</h2>
+            <div class="camera-selected" onclick="setCameraIndex(0);" id="octomat">
+                <img class="cameraIcon" src="./graphics/octomat.png" />
+                <h3 class="cameraName">Octomat</h3>
+            </div>
+            <div class="camera" onclick="setCameraIndex(2);" id="actionsampler">
+                <img class="cameraIcon" src="./graphics/actionsampler.png" />
+                <h3 class="cameraName">Action Sampler</h3>
+            </div>
+            <div class="camera" onclick="setCameraIndex(1);" id="supersampler">
+                <img class="cameraIcon" src="./graphics/supersampler.png" />
+                <h3 class="cameraName">Super Sampler</h3>
+            </div>
         </div>
-        <div class="camera" onclick="setCameraIndex(1);" id="supersampler">
-            <img class="cameraIcon" src="./graphics/supersampler.png" />
-            <h3 class="cameraName">Super Sampler</h3>
+        <div class="stage">
+            <h2>Select your image</h2>
+            <input type="file" name="picField" id="picField" />
         </div>
-    </div>
-    <div class="stage">
-        <h2>Select your image</h2>
-        <input type="file" name="picField" id="picField" />
-    </div>
-    <div class="stage">
-        <h2>Enter the darkroom</h2>
-        <button onclick="loadFile()">Develop</button>
-    </div>
-    <div class="stage">
-        <img id="output" class="output" style="max-width: 500px; padding-bottom: 20px;" />
-    </div>
-    <a href="http://alexgee.xyz" class="linkout">
-        <h4 class="hvr-fade">alexgee.xyz <img class="circle-image" src="https://www.gravatar.com/avatar/66b5467449acc36e21e7aafb96373f84?s=200"></h4>
-    </a>
+        <div class="stage">
+            <h2>Enter the darkroom</h2>
+            <label for="speed">GIF Speed </label><input type="range" id="speed" name="speed" min="0.5" max="1.5" value="1" step=".1" />
+            <br />
+            <br />
+            <button onclick="loadFile()">Develop</button>
+        </div>
+        <div class="stage">
+            <img id="processing" style="display: none; margin-left:auto; margin-right:auto;" src="./graphics/loading.gif">
+            <img id="output" class="output" style="max-width: 500px; padding-bottom: 20px;" />
+
+        </div>
+        <a href="http://alexgee.xyz" class="linkout">
+            <h4 class="hvr-fade">alexgee.xyz <img class="circle-image" src="https://www.gravatar.com/avatar/66b5467449acc36e21e7aafb96373f84?s=200"></h4>
+        </a>
     </div>
 </body>
-
 </html>
