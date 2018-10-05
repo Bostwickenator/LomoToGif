@@ -85,10 +85,12 @@
             } else if (cameraIndex == OCTOMAT) {
                 var y = 1;
                 for (var x = 0; x < xFrames; x++) {
-                    var xPos = x * xStep;
-                    var yPos = y * yStep;
-                    ctx.drawImage(image, xPos, yPos, xStep, yStep, 0, 0, xStep, yStep);
-                    gif.addFrame(ctx, { delay: delay, copy: true });
+                    for (var y = 0; y < yFrames; y++) {
+                        var xPos = x * xStep;
+                        var yPos = y * yStep;
+                        ctx.drawImage(image, xPos, yPos, xStep, yStep, 0, 0, xStep, yStep);
+                        gif.addFrame(ctx, { delay: delay, copy: true });
+                    }
                 }
                 y = 0;
                 for (var x = xFrames-1; x >= 0; x--) {
